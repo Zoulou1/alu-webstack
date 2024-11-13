@@ -1,22 +1,31 @@
 #!/usr/bin/env bash
-#Configure your domain zone so that the subdomain www and display information about subdomains
+# Configuring a bash script
+# This bash script gets information from
+# a domain and subdomain
 
-if [ "$#" = 1 ]
-then
-    subdomains=("www" "lb-01" "web-01" "web-02")
-    for sub_domain in "${subdomains[@]}"
-    do
-	record_type=$(dig $sub_domain.$1 | grep -A1 'ANSWER SECTION' | tail -1 | awk '{print $4}')
-        destination_ip=$(dig $sub_domain.$1 | grep -A1 'ANSWER SECTION' | tail -1 | awk '{print $5}')
-<<<<<<< HEAD
-	echo "The subdomain $sub_domain is a $record_type record and points to
-=======
-	echo "The subdomain $sub_domain is a $record_type record and points to $destination_ip"
+researcher() {
+    domain=$1
+    subdomain=$2
+    record_type=$3
+
+    # Use dig to get the DNS record of the specified type for the subdomain
+    result=$(dig +short "$subdomain.$domain" "$record_type" | awk '{print $1}')
+
+    # If result is not empty, print the result
+    if [[ -n "$result" ]]; then
+        echo "The subdomain $subdomain is a $record_type record and points to $result"
+    else
+        echo "No record found for $subdomain.$domain"
+    fi
+}
+
+# Check that the domain argument is provided
+if [[ $# -eq 1 ]] && [[ "$1" =~ \.tech$|\.online$ ]]; then
+    for sub_domain in "www" "lb-01" "web-01" "web-02"; do
+	    researcher "$1" "$sub_domain" "A"
     done
-elif [ "$#" = 2 ]
-then
-    record_type=$(dig $2.$1 | grep -A1 'ANSWER SECTION' | tail -1 | awk '{print $4}')
-    destination_ip=$(dig $2.$1 | grep -A1 'ANSWER SECTION' | tail -1 | awk '{print $5}')
-    echo "The subdomain $2 is a $record_type record and points to $destination_ip"
+elif [[ $# -eq 2 ]]; then
+	researcher "$1" "$2" "A"
+else
+	echo "Invalid Usage"
 fi
->>>>>>> 055ccfbcf3669c3add65619af63ccb19608509b6
